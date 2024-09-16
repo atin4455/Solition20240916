@@ -1,5 +1,7 @@
 ﻿using BookStore.FrontEnd.Site.Models;
 using BookStore.FrontEnd.Site.Models.Dtos;
+using BookStore.FrontEnd.Site.Models.EFModels;
+using BookStore.FrontEnd.Site.Models.Infra;
 using BookStore.FrontEnd.Site.Models.Repositories;
 using BookStore.FrontEnd.Site.Models.Services;
 using BookStore.FrontEnd.Site.Models.ViewModels;
@@ -139,6 +141,54 @@ namespace BookStore.FrontEnd.Site.Controllers
 
             ModelState.AddModelError(string.Empty, result.ErrorMessage);
             return View(vm);
+        }
+
+        public ActionResult ForgotPassword()
+        {
+            return View();
+        }
+
+        [HttpPost]
+        public ActionResult ForgotPassword(ForgotPasswordVm vm)
+        {
+            if (ModelState.IsValid == false) return View(vm);
+
+            var urlTemplate = Request.Url.Scheme + "://" + //生成http:.//或https://
+                            Request.Url.Authority + "/" +//生成網域名稱或ip
+                            "Members/ResetPassword?memberid={0}&confirmCode={1}"; //生成網頁url
+
+            var result = ProcessResetPassword(vm.Account, vm.Email, urlTemplate);
+
+            if(result.IsSuccess == false)
+            {
+                ModelState.AddModelError(string.Empty,result.ErrorMessage);
+                return View(vm);
+            }
+            return View("ForgotPasswordConfirm");
+        }
+
+        private Result ProcessResetPassword(string account, string email, string urlTemplate)
+        {
+            var db = new AppDbContext();
+            // 檢查 account, email 正確性
+            var memberInDb = db.Members.FirstOrDefault(m => m.Account == account);
+
+            if (memberInDb == null) return Result.Fail("帳號或 Email 錯誤"); // 故意不告知錯誤錯誤原因
+            if (string.Compare(email, memberInDb.Email, StringComparison.CurrentCultureIgnoreCase) != 0) return Result.Fail("帳號或 Email 錯誤");
+
+            // 檢查 IsConfirmed 必須為 true，因為只有已啟用帳號才能重設密碼
+            if (memberInDb.IsConfirmed == false) return Result.Fail("你還沒有啟用本帳號,請先完成才能重設密碼");
+
+            // 更新紀錄，導入 confirmCode
+            var confirmCode = Guid.NewGuid().ToString("N");
+            memberInDb.ConfirmCode = confirmCode;
+            db.SaveChanges();
+
+            // 發 email
+            var url = string.Format(urlTemplate, memberInDb.Id, confirmCode);
+            new EmailHelper().SendForgotPasswordEmail(url, memberInDb.Name, email);
+
+            return Result.Success();
         }
 
         private Result HandleChangePassword(string account, ChangePasswordVm vm)
