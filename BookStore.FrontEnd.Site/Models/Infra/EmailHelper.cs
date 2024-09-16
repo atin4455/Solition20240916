@@ -27,7 +27,7 @@ namespace BookStore.FrontEnd.Site.Models.Infra
             SendFromGmail(from, to, subject, body);
         }
 
-        private void SendFromGmail(string from, string to, string subject, string body)
+        public virtual void SendFromGmail(string from, string to, string subject, string body)
         {
             //todo以下是開發時,測試之用,只是建立text file,不真的寄出信
             var path=HttpContext.Current.Server.MapPath("~/files/");
