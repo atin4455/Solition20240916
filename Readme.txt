@@ -90,9 +90,14 @@
     add CartController, 實作將商品加入購物車
     add CartVm, CartItemVm classes
 
-[working on] 顯示購物車資訊, 實作增減數量的功能
+[V] 顯示購物車資訊, 實作增減數量的功能
 modify CartController,add Info action
 修改_Layout,加入購物車網頁(Cart/Info)的連結
 add Cart.UpdateItem action
+
+[working on]實作 結帳作業
+add CheckoutVm
+add CartController.Checkout action
+add CheckoutConfirm.cshtml
 
 []針對新會員暫時沒作發信功能
