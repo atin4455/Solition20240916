@@ -25,6 +25,49 @@ namespace BookStore.FrontEnd.Site.Controllers
             return new EmptyResult();
         }
 
+         [Authorize]
+        public ActionResult Info()
+        {
+            var account=User.Identity.Name;
+            var cartInfo = GetCartInfo(account);
+
+            return View(cartInfo);
+        }
+
+        [Authorize]
+        public ActionResult UpdateItem(int productId, int newQty)
+        {
+            var account = User.Identity.Name;
+            newQty = newQty <= 0 ? 0 : newQty;
+
+            UpdateItemQty(account, productId, newQty);
+
+            return new EmptyResult();
+        }
+
+        private void UpdateItemQty(string account, int productId, int newQty)
+        {
+            // 取得目前購物車主體，若沒有，無法更新則返回
+            var cart = GetCartInfo(account);
+            var cartItem = cart.CartItems.FirstOrDefault(ci => ci.ProductId == productId);
+            if (cartItem == null) return;
+
+            var db = new AppDbContext();
+            // 如果 newQty 為 0, 就從購物車明細中刪除; 否則就更新數量
+            if (newQty == 0)
+            {
+                var entity = db.CartItems.Find(cartItem.Id);
+                if (entity != null) db.CartItems.Remove(entity);
+
+                db.SaveChanges();
+                return;
+            }
+
+            var cartItemInDb = db.CartItems.FirstOrDefault(ci => ci.Id == cartItem.Id);
+            cartItemInDb.Qty = newQty;
+            db.SaveChanges();
+        }
+
         /// <summary>
         /// 加入購物車,若明細不存在就新增一筆,若存在就更新數量
         /// </summary>

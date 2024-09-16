@@ -72,6 +72,27 @@
         add ResetPassword.cshtml
         add ResetPasswordConfirm.cshtml
 0916進度==========================================================================================================
+前台購物車
+[V] 顯示商單清單
 
+    add ProductIndexVm, ProductIndexDto classes
+    增加Mapping config
+
+    add ProductsController
+    add Index action
+
+    add Index.cshtml
+    寫js, 實作加入購物車功能
+    只有在登入狀態下才能加入購物車
+    將網站起始頁面改為Products/Index
+    修改 _Layout.cshtml 連結, 首頁的超連結
+
+    add CartController, 實作將商品加入購物車
+    add CartVm, CartItemVm classes
+
+[working on] 顯示購物車資訊, 實作增減數量的功能
+modify CartController,add Info action
+修改_Layout,加入購物車網頁(Cart/Info)的連結
+add Cart.UpdateItem action
 
 []針對新會員暫時沒作發信功能
