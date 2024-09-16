@@ -167,6 +167,45 @@ namespace BookStore.FrontEnd.Site.Controllers
             return View("ForgotPasswordConfirm");
         }
 
+        public ActionResult ResetPassword(int memberId,string confirmCode)
+        {
+            return View();
+        }
+        [HttpPost]
+        public ActionResult ResetPassword(ResetPasswordVm vm, int memberId, string confirmCode)
+        {
+            if (ModelState.IsValid == false) return View(vm);
+
+            Result result = ProcessChangePassword(memberId, confirmCode, vm.Password);
+
+            if (result.IsSuccess == false)
+            {
+                ModelState.AddModelError(string.Empty, result.ErrorMessage);
+                return View(vm);
+            }
+            return View("ResetPasswordConfirm");
+        }
+
+        private Result ProcessChangePassword(int memberId, string confirmCode, string password)
+        {
+            var db = new AppDbContext();
+
+            // 驗證 memberId 和 confirmCode 是否正確
+            var memberInDb = db.Members.FirstOrDefault(m => m.Id == memberId && m.ConfirmCode == confirmCode);
+            if (memberInDb == null) return Result.Fail("找不到對應的會員紀錄");
+
+            // 更新密碼，並將 confirmCode 清空
+            var salt = HashUtility.GetSalt();
+            var encryptedPassword = HashUtility.ToSHA256(password, salt);
+
+            memberInDb.EncryptedPassword = encryptedPassword;
+            memberInDb.ConfirmCode = null;
+
+            db.SaveChanges();
+
+            return Result.Success();
+        }
+
         private Result ProcessResetPassword(string account, string email, string urlTemplate)
         {
             var db = new AppDbContext();
