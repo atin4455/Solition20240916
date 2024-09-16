@@ -71,5 +71,7 @@
     add MemberController .ResetPassword action
         add ResetPassword.cshtml
         add ResetPasswordConfirm.cshtml
+0916進度==========================================================================================================
+
 
 []針對新會員暫時沒作發信功能
